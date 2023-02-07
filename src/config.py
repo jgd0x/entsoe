@@ -3,7 +3,7 @@ import os
 
 API_CALL_DELAY = 8
 API_KEY = os.getenv("API_KEY")
-NUM_EXECUTORS = 4
+NUM_EXECUTORS = 8
 ENTSOE_TARGET_S3_BUCKET = "entsoe-test"
 WINDOW_SIZE = 365
 

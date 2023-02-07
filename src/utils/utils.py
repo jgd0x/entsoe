@@ -43,6 +43,21 @@ def upload_file_to_s3(s3_client, file_name, bucket, object_name=None):
     try:
         s3_client.upload_file(file_name, bucket, object_name, ExtraArgs={"ServerSideEncryption": "AES256"})
     except ClientError as e:
-        LOGGER.error(e)
+        LOGGER.exception(e)
         return False
     return True
+
+
+def dynamodb_exception(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+
+        except ClientError as e:
+            if e.response['Error']['Code'] == "ResourceNotFoundException":
+                LOGGER.info("The table does not exist")
+                return None
+            else:
+                raise e
+
+    return wrapper

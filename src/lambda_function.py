@@ -7,46 +7,47 @@ import pandas as pd
 from src.loader.entsoe_loader import EntsoeLoader
 from src.utils.dictionaries import entsoe_endpoints, entsoe_area_codes
 from src.config import NUM_EXECUTORS
+from src.tracker.dynamodb import DynamoDBTracker
 
 
-def fetch_entsoe_data(start, end, s3_client):
+def fetch_entsoe_data(tracker: DynamoDBTracker, s3_client) -> dict:
     """
     Fetches data from all the defined ENTSOE API endpoints and area codes.
+    Fetch is performed from the last date that data was fetched until the
+    current date (excluded).
 
-    :param start: The start date of the data to fetch.
-    :param end: The end date of the data to fetch.
+    :param tracker: DynamoDB tracker to check whether data has already been fetched.
     :param s3_client: The S3 client to use.
 
-    :return: None
+    :return: 200 Success
     """
 
-    entsoe_loader = EntsoeLoader(start, end)
+    entsoe_loader = EntsoeLoader()
 
     with ThreadPoolExecutor(max_workers=NUM_EXECUTORS) as pool:
         for area in entsoe_area_codes:
             for endpoint in entsoe_endpoints:
-                pool.submit(entsoe_loader.run, endpoint, area, s3_client)
 
-"""
- return {
-        'statusCode': 200,
-        'body': 'Success'
-    }
+                partition_key = f"DATASOURCE#ENTSOE#DATASET#{endpoint.upper()}#AREA#{area.upper()}"
+                last_item = tracker.read_tracking_tbl(partition_key)
+                # Check if any data has been fetched for this endpoint and area
+                if last_item:
+                    start_date = pd.Timestamp(last_item["sort_key"], tz="Europe/Brussels")
+                else:
+                    # TODO: Define default start date
+                    start_date = pd.Timestamp("2023-01-01", tz="Europe/Brussels")
 
-"""
+                pool.submit(entsoe_loader.run, endpoint, area, start_date, partition_key, tracker, s3_client)
+
+    return {'statusCode': 200, 'body': 'Success'}
 
 
 if __name__ == "__main__":
-
     start_time = datetime.datetime.now()
 
-    s3_client = boto3.client("s3")
-    start = pd.Timestamp('20210101', tz='Europe/Brussels')
-    end = pd.Timestamp('20210102', tz='Europe/Brussels')
-
-    fetch_entsoe_data(start, end, s3_client)
+    tracker = DynamoDBTracker("eu-west-3", "tracker")
+    s3_client = boto3.resource("s3")
+    fetch_entsoe_data(tracker, s3_client)
 
     end_time = datetime.datetime.now()
     print(f"Total time: {end_time - start_time}")
-
-

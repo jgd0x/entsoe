@@ -1,19 +1,26 @@
 import boto3
 import pandas as pd
 import pytest
-from moto import mock_s3
+from moto import mock_s3, mock_dynamodb
 
 from src.loader.entsoe_loader import EntsoeLoader
+from src.tracker.dynamodb import DynamoDBTracker
 
 
 @pytest.fixture
 def entsoe_loader() -> EntsoeLoader:
-    start_date = pd.Timestamp('20210101', tz='Europe/Brussels')
-    end_date = pd.Timestamp('20210102', tz='Europe/Brussels')
+    return EntsoeLoader()
 
-    loader = EntsoeLoader(start_date=start_date, end_date=end_date)
 
-    return loader
+@pytest.fixture
+def table_tracker():
+    with mock_dynamodb():
+        tracker = DynamoDBTracker("eu-west-1", "tracker")
+
+
+@pytest.fixture
+def start_date() -> EntsoeLoader:
+    return pd.Timestamp("2022-12-20", tz="Europe/Brussels")
 
 
 @pytest.fixture
