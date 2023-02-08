@@ -5,9 +5,9 @@ import pandas as pd
 import pytest
 from moto import mock_s3, mock_dynamodb
 
+from src.config import ENTSOE_TARGET_S3_BUCKET, trackingTblConnection
 from src.loader.entsoe_loader import EntsoeLoader
 from src.tracker.dynamodb import DynamoDBTracker
-from src.config import ENTSOE_TARGET_S3_BUCKET, trackingTblConnection
 
 
 @pytest.fixture()
@@ -18,7 +18,6 @@ def entsoe_loader(table_tracker: DynamoDBTracker, s3_client: boto3.client) -> En
 @pytest.fixture()
 def invalid_table_tracker() -> typing.Generator:
     with mock_dynamodb():
-        dynamo_db = boto3.resource("dynamodb", region_name="eu-west-1")
         yield DynamoDBTracker("eu-west-1")
 
 
