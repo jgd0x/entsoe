@@ -55,9 +55,7 @@ def dynamodb_exception(func):
 
         except ClientError as e:
             if e.response['Error']['Code'] == "ResourceNotFoundException":
-                LOGGER.info("The table does not exist")
-                return None
-            else:
-                raise e
+                LOGGER.exception("The table does not exist")
+            raise e
 
     return wrapper

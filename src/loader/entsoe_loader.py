@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta, date
 from tempfile import mkdtemp
+import boto3
 
 import pandas as pd
 from entsoe import EntsoePandasClient
@@ -15,12 +16,14 @@ from src.tracker.dynamodb import DynamoDBTracker
 
 class EntsoeLoader:
 
-    def __init__(self):
-        self.client = EntsoePandasClient(api_key=API_KEY)
+    def __init__(self, tracker: DynamoDBTracker, s3_client: boto3.client):
+        self.entsoe_client = EntsoePandasClient(api_key=API_KEY)
+        self.tracker = tracker
+        self.s3_client = s3_client
+        self.temp_folder = mkdtemp()
         self.current_date = self.current_date()
         self.end_date = self.end_date()
         self.window_size: int = WINDOW_SIZE
-        self.temp_folder = mkdtemp()
 
     def __repr__(self):
         return f"ENTSOE Loader"
@@ -30,7 +33,7 @@ class EntsoeLoader:
         return date.today().strftime('%Y-%m-%d')
 
     @staticmethod
-    def end_date() -> str:
+    def end_date() -> pd.Timestamp:
         return pd.Timestamp(date.today() - timedelta(days=1), tz="Europe/Brussels")
 
     def fetch_from_api(self, endpoint: str, area: str, start: pd.Timestamp, end: pd.Timestamp) -> pd.DataFrame:
@@ -45,7 +48,7 @@ class EntsoeLoader:
         :return: A pandas dataframe with the fetched data.
         """
         try:
-            fetched_data = getattr(self.client, entsoe_endpoints[endpoint])(
+            fetched_data = getattr(self.entsoe_client, entsoe_endpoints[endpoint])(
                 entsoe_area_codes[area], start=start, end=end)
 
             # Taking care of the special case for day_ahead_prices
@@ -69,8 +72,7 @@ class EntsoeLoader:
         except (KeyError, TypeError, ValueError):
             raise ValueError(f"Invalid endpoint or area code: {endpoint} or {area}")
 
-    def run(self, endpoint: str, area: str, start_date: pd.Timestamp, partition_key: str,
-            tracker: DynamoDBTracker, s3_client) -> bool:
+    def run(self, endpoint: str, area: str, start_date: pd.Timestamp, partition_key: str) -> bool:
         """
         Fetches data from the ENTSOE API and uploads it to S3.
         Data is fetched in windows defined by the WINDOW_SIZE
@@ -78,9 +80,7 @@ class EntsoeLoader:
         :param endpoint: The endpoint to fetch data from.
         :param area: The area to fetch data from.
         :param start_date: The start date of the data to fetch.
-        :param tracker: DynamoDB tracker to check whether data has already been fetched.
         :param partition_key: DynamoDB partition key.
-        :param s3_client: The S3 client to use.
 
         :return: True if the data was fetched and uploaded successfully.
         """
@@ -99,13 +99,13 @@ class EntsoeLoader:
             if not fetched_data.empty:
                 sort_key = fetched_data["value_date_time"].max().strftime("%Y-%m-%d")
                 fetched_data.to_csv(os.path.join(self.temp_folder, file_name), index=False)
-                upload_file_to_s3(s3_client, os.path.join(self.temp_folder, file_name),
+                upload_file_to_s3(self.s3_client, os.path.join(self.temp_folder, file_name),
                                   ENTSOE_TARGET_S3_BUCKET, os.path.join(endpoint, file_name))
 
             iteration_start_date = iteration_end_date
 
         # If data was fetched, update the tracker
         if sort_key is not None:
-            tracker.update_tracking_tbl(partition_key, sort_key, self.current_date)
+            self.tracker.update_tracking_tbl(partition_key, sort_key, self.current_date)
 
         return True

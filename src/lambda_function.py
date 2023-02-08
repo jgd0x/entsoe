@@ -10,7 +10,7 @@ from src.config import NUM_EXECUTORS
 from src.tracker.dynamodb import DynamoDBTracker
 
 
-def fetch_entsoe_data(tracker: DynamoDBTracker, s3_client) -> dict:
+def fetch_entsoe_data(tracker: DynamoDBTracker, s3_client: boto3.client) -> dict:
     """
     Fetches data from all the defined ENTSOE API endpoints and area codes.
     Fetch is performed from the last date that data was fetched until the
@@ -22,7 +22,7 @@ def fetch_entsoe_data(tracker: DynamoDBTracker, s3_client) -> dict:
     :return: 200 Success
     """
 
-    entsoe_loader = EntsoeLoader()
+    entsoe_loader = EntsoeLoader(tracker, s3_client)
 
     with ThreadPoolExecutor(max_workers=NUM_EXECUTORS) as pool:
         for area in entsoe_area_codes:
@@ -45,7 +45,7 @@ def fetch_entsoe_data(tracker: DynamoDBTracker, s3_client) -> dict:
 if __name__ == "__main__":
     start_time = datetime.datetime.now()
 
-    tracker = DynamoDBTracker("eu-west-3", "tracker")
+    tracker = DynamoDBTracker(region_name="eu-west-3")
     s3_client = boto3.resource("s3")
     fetch_entsoe_data(tracker, s3_client)
 

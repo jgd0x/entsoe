@@ -1,16 +1,16 @@
 import boto3
 from boto3.dynamodb.conditions import Key
 
-from src.config import LOGGER
+from src.config import LOGGER, trackingTblConnection
 from src.utils.utils import dynamodb_exception
 
 
 class DynamoDBTracker:
     """Getting the tracking data from dynamodb"""
 
-    def __init__(self, region_name: str, table_name: str):
+    def __init__(self, region_name: str):
         self.resource = boto3.resource('dynamodb', region_name=region_name)
-        self.table = self.resource.Table(table_name)
+        self.table = self.resource.Table(trackingTblConnection.DATA_FETCH_TRACKING_TABLE)
 
     def __repr__(self) -> str:
         return "DynamoDBTracker"
@@ -22,9 +22,9 @@ class DynamoDBTracker:
         """
         LOGGER.info(f"Updating Tracking Table for {partition_key}")
         item = {
-            'partition_key': partition_key,
-            'sort_key': sort_key,
-            'fetch_date': fetch_date}
+            trackingTblConnection.PARTITION_KEY: partition_key,
+            trackingTblConnection.SORT_KEY: sort_key,
+            trackingTblConnection.FETCH_DATE: fetch_date}
         self.table.put_item(Item=item)
         return True
 
@@ -33,7 +33,7 @@ class DynamoDBTracker:
         """Gets content from DB for the given partition key."""
         LOGGER.info(f"Reading Tracking Table for {partition_key}")
         response = self.table.query(
-            KeyConditionExpression=(Key('partition_key').eq(partition_key)),
+            KeyConditionExpression=(Key(trackingTblConnection.PARTITION_KEY).eq(partition_key)),
             ScanIndexForward=False,
             Limit=1)
         if not response['Items']:
