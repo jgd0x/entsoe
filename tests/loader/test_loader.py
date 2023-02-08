@@ -2,9 +2,7 @@ import boto3
 import pandas as pd
 import pytest
 
-from src.config import ENTSOE_TARGET_S3_BUCKET
 from src.loader.entsoe_loader import EntsoeLoader
-from src.tracker.dynamodb import DynamoDBTracker
 
 from tests.fixtures import entsoe_loader, s3_client, table_tracker, start_date
 from tests.fixtures import valid_endpoint, valid_area_code, invalid_endpoint, invalid_area_code
