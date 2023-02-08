@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "entsoe"
+version = "0.0.1"
+description = ""
+authors = ["Your Name <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pandas = "^1.5.3"
+entsoe-py = "^0.5.9"
+boto3 = "^1.26.54"
+botocore = "^1.29.54"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.2.0"
+pytest-cov = "^4.0.0"
+moto = "^4.1.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
