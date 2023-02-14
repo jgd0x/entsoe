@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.utils.utils &mdash; entsoe-loader  documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            entsoe-loader
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">entsoe-loader</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">entsoe-loader</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.utils.utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.utils.utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">botocore.exceptions</span> <span class="kn">import</span> <span class="n">ClientError</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">src.config</span> <span class="kn">import</span> <span class="n">LOGGER</span>
+
+
+<div class="viewcode-block" id="generate_file_name"><a class="viewcode-back" href="../../../src.utils.html#src.utils.utils.generate_file_name">[docs]</a><span class="k">def</span> <span class="nf">generate_file_name</span><span class="p">(</span><span class="n">endpoint</span><span class="p">,</span> <span class="n">area</span><span class="p">,</span> <span class="n">current_date</span><span class="p">,</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates a file name for the fetched data.</span>
+
+<span class="sd">    :param endpoint: The endpoint to fetch data from.</span>
+<span class="sd">    :param area: The area to fetch data from.</span>
+<span class="sd">    :param current_date: The current date.</span>
+<span class="sd">    :param start_date: The start date of the data to fetch.</span>
+<span class="sd">    :param end_date: The end date of the data to fetch.</span>
+
+<span class="sd">    :return: A string with the generated file name.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">file_start_date</span> <span class="o">=</span> <span class="n">start_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">file_end_date</span> <span class="o">=</span> <span class="n">end_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">file_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;dataset=</span><span class="si">{</span><span class="n">endpoint</span><span class="si">}</span><span class="s2">_area=</span><span class="si">{</span><span class="n">area</span><span class="si">}</span><span class="s2">_fetch_date=</span><span class="si">{</span><span class="n">current_date</span><span class="si">}</span><span class="s2">&quot;</span> \
+                <span class="sa">f</span><span class="s2">&quot;_start_date=</span><span class="si">{</span><span class="n">file_start_date</span><span class="si">}</span><span class="s2">_end_date=</span><span class="si">{</span><span class="n">file_end_date</span><span class="si">}</span><span class="s2">.csv&quot;</span>
+
+    <span class="k">return</span> <span class="n">file_name</span></div>
+
+
+<div class="viewcode-block" id="upload_file_to_s3"><a class="viewcode-back" href="../../../src.utils.html#src.utils.utils.upload_file_to_s3">[docs]</a><span class="k">def</span> <span class="nf">upload_file_to_s3</span><span class="p">(</span><span class="n">s3_client</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">object_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Upload a file to an S3 bucket</span>
+
+<span class="sd">    :param s3_client: The S3 client to use.</span>
+<span class="sd">    :param file_name: File to upload</span>
+<span class="sd">    :param bucket: Bucket to upload to</span>
+<span class="sd">    :param object_name: S3 object name. If not specified then file_name is used</span>
+
+<span class="sd">    :return: True if file was uploaded, else False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># If S3 object_name was not specified, use file_name</span>
+    <span class="k">if</span> <span class="n">object_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">object_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+
+    <span class="c1"># Upload the file</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">s3_client</span><span class="o">.</span><span class="n">upload_file</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">object_name</span><span class="p">,</span> <span class="n">ExtraArgs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ServerSideEncryption&quot;</span><span class="p">:</span> <span class="s2">&quot;AES256&quot;</span><span class="p">})</span>
+    <span class="k">except</span> <span class="n">ClientError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="dynamodb_exception"><a class="viewcode-back" href="../../../src.utils.html#src.utils.utils.dynamodb_exception">[docs]</a><span class="k">def</span> <span class="nf">dynamodb_exception</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Decorator to handle dynamodb exceptions&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="n">ClientError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">error</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s1">&#39;Error&#39;</span><span class="p">][</span><span class="s1">&#39;Code&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;ResourceNotFoundException&quot;</span><span class="p">:</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;The table does not exist&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">error</span>
+
+    <span class="k">return</span> <span class="n">wrapper</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, JG.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

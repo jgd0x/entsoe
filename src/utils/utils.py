@@ -7,6 +7,7 @@ from src.config import LOGGER
 def generate_file_name(endpoint, area, current_date, start_date, end_date):
     """
     Generates a file name for the fetched data.
+
     :param endpoint: The endpoint to fetch data from.
     :param area: The area to fetch data from.
     :param current_date: The current date.
@@ -27,6 +28,7 @@ def generate_file_name(endpoint, area, current_date, start_date, end_date):
 def upload_file_to_s3(s3_client, file_name, bucket, object_name=None):
     """
     Upload a file to an S3 bucket
+
     :param s3_client: The S3 client to use.
     :param file_name: File to upload
     :param bucket: Bucket to upload to
@@ -49,13 +51,14 @@ def upload_file_to_s3(s3_client, file_name, bucket, object_name=None):
 
 
 def dynamodb_exception(func):
+    """Decorator to handle dynamodb exceptions"""
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
 
-        except ClientError as e:
-            if e.response['Error']['Code'] == "ResourceNotFoundException":
+        except ClientError as error:
+            if error.response['Error']['Code'] == "ResourceNotFoundException":
                 LOGGER.exception("The table does not exist")
-            raise e
+            raise error
 
     return wrapper

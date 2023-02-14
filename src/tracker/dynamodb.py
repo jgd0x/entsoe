@@ -6,7 +6,7 @@ from src.utils.utils import dynamodb_exception
 
 
 class DynamoDBTracker:
-    """Getting the tracking data from dynamodb"""
+    """Gets tracking data from dynamodb"""
 
     def __init__(self, region_name: str):
         self.resource = boto3.resource('dynamodb', region_name=region_name)
@@ -40,5 +40,4 @@ class DynamoDBTracker:
             return {}
         LOGGER.info(response)
         return response.get('Items')[0]
-
 

@@ -1,3 +1,5 @@
+"""Dictionaries for ENTSOE API (endpoints and area codes)."""
+
 entsoe_endpoints = {
     "imbalance_prices": "query_imbalance_prices",
     "day_ahead_prices": "query_day_ahead_prices",

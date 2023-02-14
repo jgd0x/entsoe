@@ -10,7 +10,14 @@ from src.utils.dictionaries import entsoe_endpoints, entsoe_area_codes
 
 
 def lambda_handler(event, context) -> dict:
-    """Lambda function to fetch data from ENTSOE API and upload to S3."""
+    """
+    Lambda function to fetch data from ENTSOE API and upload to S3.
+
+    :param event: The event that triggered the lambda function.
+    :param context: The context of the lambda function.
+
+    :return: Success message.
+    """
 
     tracker = DynamoDBTracker(region_name="eu-west-3")
     s3_client = boto3.client("s3")
